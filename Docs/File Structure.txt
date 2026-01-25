@@ -1,0 +1,35 @@
+.
+└── Cert Agent V3/
+    ├── GetCertAgent/
+    │   └── Cert_Inbox
+    ├── ExtractDataAgent/
+    │   ├── CertNumberExtractAgent/
+    │   │   └── Cert_Number_CSVs
+    │   ├── ProductNameExtractAgent/
+    │   │   └── Product_Name_CSVs
+    │   ├── LotNumberExtractAgent/
+    │   │   └── Lot_Number_CSVs
+    │   ├── LotSizeExtractAgent/
+    │   │   └── Lot_Size_CSVs
+    │   ├── AnalysisResultExtractAgent/
+    │   │   └── Analysis_Result_CSVs
+	│   ├── Cert_To_PNG_OCR
+    │   └── Cert_Data_CSVs
+    ├── ERPrawAgent/
+    │   └── ERPraw_CSVs
+    ├── ERPmrlAgent/
+    │   └── ERPmrl_CSVs
+    ├── EvaluationAgent/
+    │   └── Evaluation_CSVs
+    ├── AnnotateAgent/
+    │   └── Annotated_PDFs
+    ├── PrintingAgent/
+    │   └── Final_PDFs
+    ├── Source_Data/
+    │   ├── Raw Warehouses.xlsx
+    │   ├── EU Limits Data.xlsm
+    │   ├── pesticides_list.csv
+    │   └── products_list.csv
+    ├── Printed_Cert
+    ├── requirements.txt
+    └── ReadMe.txt

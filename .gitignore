@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Config / Secrets
+.env
+config/*.local.yaml
+
+# Runtime data (ignore everywhere)
+data/
+**/Cert_Inbox/
+**/Cert_To_PNG_OCR/
+**/*_CSVs/
+**/Annotated_PDFs/
+**/Final_PDFs/
+**/Printed_Cert/
+
+# OCR / logs (optional safety)
+*.hocr
+*.log
