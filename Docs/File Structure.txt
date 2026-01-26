@@ -1,35 +1,69 @@
-.
-└── Cert Agent V3/
-    ├── GetCertAgent/
-    │   └── Cert_Inbox
-    ├── ExtractDataAgent/
-    │   ├── CertNumberExtractAgent/
-    │   │   └── Cert_Number_CSVs
-    │   ├── ProductNameExtractAgent/
-    │   │   └── Product_Name_CSVs
-    │   ├── LotNumberExtractAgent/
-    │   │   └── Lot_Number_CSVs
-    │   ├── LotSizeExtractAgent/
-    │   │   └── Lot_Size_CSVs
-    │   ├── AnalysisResultExtractAgent/
-    │   │   └── Analysis_Result_CSVs
-	│   ├── Cert_To_PNG_OCR
-    │   └── Cert_Data_CSVs
-    ├── ERPrawAgent/
-    │   └── ERPraw_CSVs
-    ├── ERPmrlAgent/
-    │   └── ERPmrl_CSVs
-    ├── EvaluationAgent/
-    │   └── Evaluation_CSVs
-    ├── AnnotateAgent/
-    │   └── Annotated_PDFs
-    ├── PrintingAgent/
-    │   └── Final_PDFs
-    ├── Source_Data/
-    │   ├── Raw Warehouses.xlsx
-    │   ├── EU Limits Data.xlsm
-    │   ├── pesticides_list.csv
-    │   └── products_list.csv
-    ├── Printed_Cert
+└── Cert-Agent-V3/
+    ├── .gitattributes
+    ├── .gitignore
+    ├── main.py
     ├── requirements.txt
-    └── ReadMe.txt
+    ├── __init__.py
+    ├── Source_Data/
+    │   ├── EU Limits Data.xlsx
+    │   ├── pesticides_list.csv
+    │   ├── products_list.csv
+    │   └── Raw Warehouses.xlsx
+    ├── PrintingAgent/
+    │   ├── printer_agent.py
+    │   └── __init__.py
+    ├── GetCertAgent/
+    │   ├── GetCertAgent ReadMe.txt
+    │   └── __init__.py
+    ├── ExtractDataAgent/
+    │   ├── aggregator.py
+    │   ├── ocr_engine.py
+    │   ├── ocr_package.py
+    │   ├── pdf_to_images.py
+    │   ├── __init__.py
+    │   ├── ProductNameExtractAgent/
+    │   │   ├── product_name_agent.py
+    │   │   └── __init__.py
+    │   ├── LotSizeExtractAgent/
+    │   │   ├── lot_size_agent.py
+    │   │   └── __init__.py
+    │   ├── LotNumberExtractAgent/
+    │   │   ├── lot_number_agent.py
+    │   │   └── __init__.py
+    │   ├── CertNumberExtractAgent/
+    │   │   ├── cert_number_agent.py
+    │   │   └── __init__.py
+    │   └── AnalysisResultExtractAgent/
+    │       ├── analysis_result_agent.py
+    │       └── __init__.py
+    ├── EvaluationAgent/
+    │   ├── evaluator_agent.py
+    │   └── __init__.py
+    ├── ERPrawAgent/
+    │   ├── erp_raw_agent.py
+    │   └── __init__.py
+    ├── ERPmrlAgent/
+    │   ├── erp_mrl_agent.py
+    │   └── __init__.py
+    ├── Docs/
+    │   ├── Cert Agent info.docx
+    │   ├── Cert Agent info.pdf
+    │   ├── cert_agent_docs.tsx
+    │   ├── Cert_Agent_V3_Full_Runbook.md
+    │   ├── Cert_Agent_V3_Runbook_Step_by_Step.md
+    │   ├── File Structure.txt
+    │   └── ~$rt Agent info.docx
+    ├── Config/
+    │   ├── config.yaml
+    │   ├── errors.py
+    │   ├── logging.yaml
+    │   ├── models.py
+    │   ├── paths.py
+    │   ├── utils.py
+    │   └── __init__.py
+    ├── AnnotateAgent/
+    │   ├── annotate_agent.py
+    │   └── __init__.py
+    ├── .venv/
+    └── .git/
+ 
