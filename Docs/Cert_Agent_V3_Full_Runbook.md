@@ -128,7 +128,7 @@ python Main.py
 ```cmd
 git pull
 .venv\Scripts\activate
-python Main.py   # تأكد إنه شغال
+python main.py   # تأكد إنه شغال
 ```
 
 ---
