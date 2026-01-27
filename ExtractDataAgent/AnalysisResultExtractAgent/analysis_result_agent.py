@@ -14,8 +14,8 @@ def extract(ocr_dir: Path) -> list[tuple[str, str]]:
         data = json.load(open(jf, encoding="utf-8"))
         lines = data["lines"]
 
-        for line in lines:
-            txt = line["text"].strip()
+        for i in range(len(lines)):
+            txt = lines[i]["text"].strip()
             low = norm(txt)
 
             if not in_section and low == "results":
@@ -26,14 +26,10 @@ def extract(ocr_dir: Path) -> list[tuple[str, str]]:
                 if any(w in low for w in STOP_WORDS):
                     return rows
 
-                # compound
-                if pending_compound is None and txt.isalpha():
-                    pending_compound = txt
-                    continue
-
-                # result
-                if pending_compound:
-                    rows.append((pending_compound, txt))
-                    pending_compound = None
+                # اسم مبيد = سطر قبل <LOQ أو رقم
+                if i + 1 < len(lines):
+                    nxt = lines[i+1]["text"].strip()
+                    if nxt.startswith("<") or nxt.replace(".", "").isdigit():
+                        rows.append((txt, nxt))
 
     return rows
