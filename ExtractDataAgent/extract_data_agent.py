@@ -13,7 +13,7 @@ from ExtractDataAgent.LotSizeExtractAgent.lot_size_agent import extract as lot_s
 from ExtractDataAgent.AnalysisResultExtractAgent.analysis_result_agent import extract as analysis_extract
 from ExtractDataAgent.aggregator import aggregate
 from Config.utils import warn_overwrite
-
+from Config.utils import safe_slug
 
 class ExtractDataAgent:
 
@@ -24,7 +24,8 @@ class ExtractDataAgent:
         """
 
         # ---- OCR CONTEXT PER CERTIFICATE ----
-        cert_ocr_dir = OCR_OUTPUT_DIR / pdf_path.stem
+        safe_name = safe_slug(pdf_path.stem)
+        cert_ocr_dir = OCR_OUTPUT_DIR / safe_name
         cert_ocr_dir.mkdir(parents=True, exist_ok=True)
 
         # -------- STEP 1: OCR PIPELINE --------

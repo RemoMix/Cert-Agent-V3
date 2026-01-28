@@ -13,7 +13,7 @@ FORBIDDEN_WORDS = {
     "sampling", "analysis", "method", "date"
 }
 
-SKIP_TOKENS = {":", "~", "=", ".", "::", "-", "_"}
+SKIP_TOKENS = {":", "~", "=", ".", "::", "-", "_", "~~", "©.", "©"}
 
 
 def is_valid_product_word(word: str) -> bool:
