@@ -16,18 +16,18 @@ def aggregate(
     product: str,
     lot: str,
     lot_size: str,
-    analysis: list[tuple[str, str]]
+    analysis_mode: str,
+    analysis_rows: list[tuple[str, str]]
 ) -> Path:
     """
     Create final CSV for one certificate.
+    Supports SUMMARY / DETAILED / EMPTY analysis modes.
     Overwrites existing file with warning.
     """
 
-    # ensure output directory exists
     CERT_DATA_CSVS.mkdir(parents=True, exist_ok=True)
     out_csv = CERT_DATA_CSVS / filename
 
-    # overwrite warning
     if out_csv.exists():
         warn_overwrite(out_csv, "final CSV regenerated")
 
@@ -41,12 +41,24 @@ def aggregate(
         writer.writerow(["Lot Number", lot])
         writer.writerow(["Lot Size", lot_size])
 
-        # blank line
         writer.writerow([])
 
-        # ---- Results table ----
+        # ---- Analysis section ----
+        writer.writerow(["Analysis Mode", analysis_mode])
+        writer.writerow([])
+
         writer.writerow(["Compound", "Result"])
-        for compound, result in analysis:
-            writer.writerow([compound, result])
+
+        if analysis_mode == "SUMMARY":
+            # مثال: Pesticide Residues - Not detected
+            for compound, result in analysis_rows:
+                writer.writerow([compound, result])
+
+        elif analysis_mode == "DETAILED":
+            for compound, result in analysis_rows:
+                writer.writerow([compound, result])
+
+        else:  # EMPTY
+            writer.writerow(["-", "NO DATA DETECTED"])
 
     return out_csv

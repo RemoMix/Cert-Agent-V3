@@ -60,7 +60,10 @@ class ExtractDataAgent:
         product = product_extract(cert_ocr_dir)
         lot = lot_extract(cert_ocr_dir)
         lot_size = lot_size_extract(cert_ocr_dir)
-        analysis = analysis_extract(cert_ocr_dir)
+
+        analysis_result = analysis_extract(cert_ocr_dir)
+        analysis_mode = analysis_result["analysis_mode"]
+        analysis_rows = analysis_result["analysis_rows"]
 
         # -------- STEP 3: AGGREGATION --------
         out_csv = aggregate(
@@ -69,7 +72,8 @@ class ExtractDataAgent:
             product,
             lot,
             lot_size,
-            analysis
+            analysis_mode,
+            analysis_rows
         )
 
         return out_csv
