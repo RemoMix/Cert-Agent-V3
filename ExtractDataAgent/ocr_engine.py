@@ -1,4 +1,6 @@
 from ExtractDataAgent.ocr_package import OCRLine, OCRPage
+from pathlib import Path
+
 
 def run_ocr(image_paths: list[Path]) -> list[OCRPage]:
     pages = []

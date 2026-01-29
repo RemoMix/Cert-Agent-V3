@@ -28,7 +28,6 @@ def deskew(image):
         borderMode=cv2.BORDER_REPLICATE
     )
 
-
 def preprocess(image_path: Path) -> None:
     """
     Global, safe preprocessing for full certificate page.
@@ -77,6 +76,10 @@ def preprocess(image_path: Path) -> None:
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, close_kernel)
 
     img = deskew(img)
+
     img = img[5:-5, 5:-5]
 
+
     cv2.imwrite(str(image_path), img)
+
+    
