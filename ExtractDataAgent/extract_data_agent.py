@@ -67,16 +67,35 @@ class ExtractDataAgent:
                 if img.exists():
                     warn_overwrite(img, "image regenerated")
 
-                tsv = run_tesseract(img, base)
+                tsv_text = run_tesseract(img, base, mode="text")
+                tsv_table = run_tesseract(img, base, mode="table")
 
-                if tsv.exists():
-                    warn_overwrite(tsv, "TSV regenerated")
+                json_text = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_text_ocr.json"
+                json_table = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_table_ocr.json"
+                json_merged = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_ocr.json"
 
-                json_path = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_ocr.json"
-                if json_path.exists():
-                    warn_overwrite(json_path, "OCR JSON regenerated")
+                tsv_to_json(tsv_text, json_text, idx)
+                tsv_to_json(tsv_table, json_table, idx)
 
-                tsv_to_json(tsv, json_path, idx)
+                # دمج الاتنين
+                data_text = json.load(open(json_text, encoding="utf-8"))
+                data_table = json.load(open(json_table, encoding="utf-8"))
+
+                json.dump(
+                    {
+                        "page_number": idx,
+                        "lines": data_text["lines"] + data_table["lines"]
+                    },
+                    open(json_merged, "w", encoding="utf-8"),
+                    ensure_ascii=False,
+                    indent=2
+                )
+
+                
+
+        # -------- OCR DEBUG OUTPUT --------
+        dump_ocr_full_text(cert_ocr_dir, safe_name)
+
 
         # -------- STEP 2: TOKEN ADAPTER (CRITICAL FIX) --------
         token_dir = cert_ocr_dir / "_tokens"
@@ -120,3 +139,31 @@ class ExtractDataAgent:
         )
 
         return out_csv
+    
+def dump_ocr_full_text(cert_ocr_dir: Path, cert_name: str):
+    """
+    Dump full OCR text (raw) for ONE certificate into a single file
+    named after the certificate.
+    """
+
+    ocr_text_dir = cert_ocr_dir.parent / "000_OCR_Text"
+    ocr_text_dir.mkdir(parents=True, exist_ok=True)
+
+    out_path = ocr_text_dir / f"{cert_name}_ocr.txt"
+
+    lines_out = []
+
+    for jf in sorted(cert_ocr_dir.glob("*_ocr.json")):
+        with open(jf, encoding="utf-8") as f:
+            data = json.load(f)
+
+        page = data.get("page_number", "?")
+        lines_out.append(f"\n=== PAGE {page} ===\n")
+
+        for line in data.get("lines", []):
+            txt = line.get("text", "")
+            if txt:
+                lines_out.append(txt)
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines_out))
