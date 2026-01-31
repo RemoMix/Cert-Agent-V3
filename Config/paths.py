@@ -8,13 +8,17 @@ TESSERACT_DIR = PROJECT_ROOT / "Tesseract"
 TESSERACT_EXE = TESSERACT_DIR / "tesseract.exe"
 TESSDATA_DIR = TESSERACT_DIR / "tessdata"
 
-# ---- Input PDFs ----
-GETCERT_INBOX = PROJECT_ROOT / "GetCertAgent" / "Cert_Inbox"
-
-# ---- OCR Outputs ----
-OCR_OUTPUT_DIR = PROJECT_ROOT / "ExtractDataAgent" / "Cert_To_PNG_OCR"
-
 # ---- Poppler ----
 POPPLER_DIR = PROJECT_ROOT / "Poppler" / "Library" / "bin"
 
+#GetCertAgent folders
+# Folder for saved emails
+MY_EMAILS_FOLDER = PROJECT_ROOT / "GetCertAgent" / "MyEmails"
+# ---- Input PDFs ----
+GETCERT_INBOX = PROJECT_ROOT / "GetCertAgent" / "Cert_Inbox"
+
+#ExtractDataAgent folders
+# ---- OCR Outputs ----
+OCR_OUTPUT_DIR = PROJECT_ROOT / "ExtractDataAgent" / "Cert_To_PNG_OCR"
+# ---- Data CSVs Outputs ----
 CERT_DATA_CSVS = PROJECT_ROOT / "ExtractDataAgent" / "Cert_Data_CSVs"

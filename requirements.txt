@@ -17,3 +17,6 @@ loguru==0.7.2
 
 # Utilities
 python-dotenv==1.0.1
+
+#for getcertagent
+pywin32==306
