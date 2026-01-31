@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from Config.paths import OCR_OUTPUT_DIR
 
+
 def generate_coverage_report():
     report = {
         "total_certificates": 0,
@@ -38,11 +39,8 @@ def generate_coverage_report():
                     report["missing_field_stats"].get(field, 0) + 1
                 )
 
-    out_dir = OCR_OUTPUT_DIR / "OCR_Text"
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    out_path = out_dir / "ocr_coverage_report.json"
+    out_path = Path(__file__).parent / "ocr_coverage_report.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
 
-    print(f"[OK] Coverage report generated: {out_path}")
+    print(f"[OK] Coverage report written to {out_path}")

@@ -1,15 +1,13 @@
 from pathlib import Path
 import json
-import re
 
 from Config.paths import OCR_OUTPUT_DIR
-from Config.utils import warn_overwrite, safe_slug
+from Config.utils import safe_slug
 
 from ExtractDataAgent.pdf_to_images import pdf_to_images
 from ExtractDataAgent.image_preprocess import preprocess
 from ExtractDataAgent.tesseract_runner import run_tesseract
 from ExtractDataAgent.ocr_json_builder import tsv_to_json
-
 from ExtractDataAgent.run_tesseract_region import run_tesseract_region
 
 from ExtractDataAgent.CertNumberExtractAgent.cert_number_agent import extract as cert_extract
@@ -21,12 +19,9 @@ from ExtractDataAgent.AnalysisResultExtractAgent.analysis_result_agent import ex
 from ExtractDataAgent.aggregator import aggregate
 
 
-# ================= OCR DEBUG =================
+# ================= OCR DEBUG (TXT جنب الشهادة) =================
 def dump_ocr_full_text(cert_ocr_dir: Path, cert_name: str):
-    ocr_text_dir = cert_ocr_dir.parent / "OCR_Text"
-    ocr_text_dir.mkdir(parents=True, exist_ok=True)
-
-    out_path = ocr_text_dir / f"{cert_name}_ocr.txt"
+    out_path = cert_ocr_dir / f"{cert_name}_ocr.txt"
 
     seen = set()
     lines_out = []
@@ -53,7 +48,7 @@ def dump_ocr_full_text(cert_ocr_dir: Path, cert_name: str):
 
 
 # ================= COVERAGE GATE =================
-def ocr_coverage_gate(cert_ocr_dir: Path):
+def ocr_coverage_gate(cert_ocr_dir: Path, cert_name: str):
     full_text = []
 
     for jf in cert_ocr_dir.glob("*_ocr.json"):
@@ -78,9 +73,18 @@ def ocr_coverage_gate(cert_ocr_dir: Path):
         if not any(k in text for k in keys):
             missing.append(field)
 
-    if missing:
-        return "FAIL", missing
-    return "PASS", []
+    status = "PASS" if not missing else "FAIL"
+
+    coverage = {
+        "certificate": cert_name,
+        "status": status,
+        "missing_fields": missing
+    }
+
+    with open(cert_ocr_dir / "ocr_coverage.json", "w", encoding="utf-8") as f:
+        json.dump(coverage, f, ensure_ascii=False, indent=2)
+
+    return status, missing
 
 
 # ================= SMART RETRY =================
@@ -144,53 +148,7 @@ def merge_all_ocr_json(cert_ocr_dir, pdf_stem, page_num):
 # ================= MAIN AGENT =================
 class ExtractDataAgent:
 
-    def run(self, pdf_path: Path):
-
-        safe_name = safe_slug(pdf_path.stem)
-        cert_ocr_dir = OCR_OUTPUT_DIR / safe_name
-        cert_ocr_dir.mkdir(parents=True, exist_ok=True)
-
-        images = pdf_to_images(pdf_path, cert_ocr_dir)
-
-        # -------- OCR PIPELINE --------
-        for idx, img in enumerate(images, start=1):
-            preprocess(img)
-            base = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}"
-
-            tsv_text = run_tesseract(img, base, mode="text")
-            tsv_table = run_tesseract(img, base, mode="table")
-
-            json_text = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_text_ocr.json"
-            json_table = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_table_ocr.json"
-
-            tsv_to_json(tsv_text, json_text, idx)
-            tsv_to_json(tsv_table, json_table, idx)
-
-            merge_all_ocr_json(cert_ocr_dir, pdf_path.stem, idx)
-
-        # -------- OCR DEBUG --------
-        dump_ocr_full_text(cert_ocr_dir, safe_name)
-
-        # -------- COVERAGE GATE --------
-        status, missing = ocr_coverage_gate(cert_ocr_dir)
-
-        if status == "FAIL":
-            smart_ocr_retry(images, cert_ocr_dir, pdf_path.stem, missing)
-
-            for i in range(1, len(images) + 1):
-                merge_all_ocr_json(cert_ocr_dir, pdf_path.stem, i)
-
-            dump_ocr_full_text(cert_ocr_dir, safe_name)
-
-            status, missing = ocr_coverage_gate(cert_ocr_dir)
-
-            if status == "FAIL":
-                return {
-                    "status": "OCR_FINAL_FAIL",
-                    "missing_fields": missing
-                }
-
-        # -------- EXTRACTION --------
+    def _extract_only(self, pdf_path, cert_ocr_dir):
         cert = cert_extract(cert_ocr_dir)
         product = product_extract(cert_ocr_dir)
         lot = lot_extract(cert_ocr_dir)
@@ -200,7 +158,7 @@ class ExtractDataAgent:
         analysis_mode = analysis_result["analysis_mode"]
         analysis_rows = analysis_result["analysis_rows"]
 
-        out_csv = aggregate(
+        return aggregate(
             f"{pdf_path.stem}_FINAL.csv",
             cert,
             product,
@@ -210,4 +168,54 @@ class ExtractDataAgent:
             analysis_rows
         )
 
-        return out_csv
+    def run(self, pdf_path: Path):
+
+        safe_name = safe_slug(pdf_path.stem)
+        cert_ocr_dir = OCR_OUTPUT_DIR / safe_name
+        cert_ocr_dir.mkdir(parents=True, exist_ok=True)
+
+        # ---------- SKIP GATE ----------
+        coverage_file = cert_ocr_dir / "ocr_coverage.json"
+        if coverage_file.exists():
+            with open(coverage_file, encoding="utf-8") as f:
+                coverage = json.load(f)
+
+            if coverage.get("status") == "PASS":
+                print(f"[SKIP OCR] {safe_name} already PASS")
+                return self._extract_only(pdf_path, cert_ocr_dir)
+
+        # ---------- OCR ----------
+        images = pdf_to_images(pdf_path, cert_ocr_dir)
+
+        for idx, img in enumerate(images, start=1):
+            preprocess(img)
+            base = cert_ocr_dir / f"{pdf_path.stem}_page_{idx}"
+
+            tsv_text = run_tesseract(img, base, mode="text")
+            tsv_table = run_tesseract(img, base, mode="table")
+
+            tsv_to_json(tsv_text, cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_text_ocr.json", idx)
+            tsv_to_json(tsv_table, cert_ocr_dir / f"{pdf_path.stem}_page_{idx}_table_ocr.json", idx)
+
+            merge_all_ocr_json(cert_ocr_dir, pdf_path.stem, idx)
+
+        dump_ocr_full_text(cert_ocr_dir, safe_name)
+
+        status, missing = ocr_coverage_gate(cert_ocr_dir, safe_name)
+
+        if status == "FAIL":
+            smart_ocr_retry(images, cert_ocr_dir, pdf_path.stem, missing)
+
+            for i in range(1, len(images) + 1):
+                merge_all_ocr_json(cert_ocr_dir, pdf_path.stem, i)
+
+            dump_ocr_full_text(cert_ocr_dir, safe_name)
+            status, missing = ocr_coverage_gate(cert_ocr_dir, safe_name)
+
+            if status == "FAIL":
+                return {
+                    "status": "OCR_FINAL_FAIL",
+                    "missing_fields": missing
+                }
+
+        return self._extract_only(pdf_path, cert_ocr_dir)
