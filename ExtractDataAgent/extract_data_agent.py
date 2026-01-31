@@ -63,7 +63,7 @@ def ocr_coverage_gate(cert_ocr_dir: Path, cert_name: str):
 
     CORE = {
         "certificate_number": ["certificate number", "cert number", "certificate no", "cert no"],
-        "sample_product": ["sample", "product"],
+        "sample_product": ["sample :", "product"],
         "lot_number": ["lot number", "lot no"],
         "analysis": ["results of analysis", "analysis results", "results"]
     }
