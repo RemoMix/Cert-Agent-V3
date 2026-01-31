@@ -17,3 +17,7 @@ if __name__ == "__main__":
             agent.run(pdf)
         except Exception as e:
             print(f"❌ Failed: {pdf.name} | {e}")
+from ExtractDataAgent.coverage_report import generate_coverage_report
+
+# بعد ما كل الشهادات تخلص
+generate_coverage_report()

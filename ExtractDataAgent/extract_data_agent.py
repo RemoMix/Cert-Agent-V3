@@ -23,7 +23,7 @@ from ExtractDataAgent.aggregator import aggregate
 
 # ================= OCR DEBUG =================
 def dump_ocr_full_text(cert_ocr_dir: Path, cert_name: str):
-    ocr_text_dir = cert_ocr_dir.parent
+    ocr_text_dir = cert_ocr_dir.parent / "OCR_Text"
     ocr_text_dir.mkdir(parents=True, exist_ok=True)
 
     out_path = ocr_text_dir / f"{cert_name}_ocr.txt"
