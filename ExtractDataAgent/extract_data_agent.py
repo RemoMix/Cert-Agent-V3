@@ -157,6 +157,11 @@ class ExtractDataAgent:
         analysis_result = analysis_extract(cert_ocr_dir)
         analysis_mode = analysis_result["analysis_mode"]
         analysis_rows = analysis_result["analysis_rows"]
+        print("FINAL VALUES BEFORE AGGREGATE")
+        print("cert   =", cert)
+        print("product=", product)
+        print("lot    =", lot)
+        print("size   =", lot_size)
 
         return aggregate(
             f"{pdf_path.stem}_FINAL.csv",

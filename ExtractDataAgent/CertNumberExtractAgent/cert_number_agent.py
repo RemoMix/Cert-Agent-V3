@@ -1,58 +1,33 @@
-import json
 import re
+import json
 from pathlib import Path
+from typing import Optional
 from Config.utils import norm
 
-
-CERT_NUMBER_PATTERN = re.compile(r"dokki-\d{5,7}", re.IGNORECASE)
-
-
-def normalize_ocr_lines(lines):
-    """
-    Normalize OCR JSON lines.
-    Handles TSV dumps embedded inside line["text"].
-    """
-    clean = []
-
-    for line in lines:
-        txt = line.get("text", "")
-
-        # TSV dump case
-        if "\t" in txt:
-            rows = txt.split("\n")
-            for r in rows:
-                parts = r.split("\t")
-                if parts:
-                    word = parts[-1].strip()
-                    if word:
-                        clean.append({"text": word})
-        else:
-            if txt.strip():
-                clean.append({"text": txt.strip()})
-
-    return clean
+CERT_PATTERN = re.compile(r"\b(dokki|ism)\s*-\s*\d{4,}\b", re.I)
+ANCHOR_PATTERN = re.compile(r"\bcertificate\s*number\b", re.I)
 
 
-def extract(ocr_dir: Path) -> str:
+def extract(ocr_dir: Path) -> Optional[str]:
     for jf in sorted(ocr_dir.glob("*_ocr.json")):
-        with open(jf, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.load(open(jf, encoding="utf-8"))
+        lines = data.get("lines", [])
 
-        # 👇 التطبيع هنا
-        lines = normalize_ocr_lines(data.get("lines", []))
+        for i, line in enumerate(lines):
+            text = line.get("text", "")
+            text_norm = norm(text)
 
-        for i in range(len(lines) - 4):
-            w1 = norm(lines[i]["text"])
-            w2 = norm(lines[i + 1]["text"])
+            if ANCHOR_PATTERN.search(text_norm):
+                # same line
+                match = CERT_PATTERN.search(text)
+                if match:
+                    return match.group(0).replace(" ", "")
 
-            # Anchor: Certificate Number / Certificate No
-            if w1 == "certificate" and w2 in {"number", "no"}:
-                # دور قدّام على Dokki-xxxx
-                for j in range(i + 2, min(i + 8, len(lines))):
-                    token = lines[j]["text"]
-
-                    match = CERT_NUMBER_PATTERN.search(token)
+                # next lines fallback
+                for j in range(i + 1, min(i + 4, len(lines))):
+                    candidate = lines[j].get("text", "")
+                    match = CERT_PATTERN.search(candidate)
                     if match:
-                        return match.group(0)
+                        return match.group(0).replace(" ", "")
 
-    return ""
+    return None

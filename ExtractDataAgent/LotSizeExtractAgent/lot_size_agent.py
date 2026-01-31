@@ -1,43 +1,42 @@
 import json
+import re
 from pathlib import Path
+from typing import Optional
 from Config.utils import norm
 
-WINDOW = 25  # مساحة كفاية للأرقام المتكسرة
+ANCHOR_PATTERN = re.compile(r"\b(lot\s*size|total\s*weight)\b", re.I)
 
-def extract(ocr_dir: Path) -> str:
+OCR_FIX = {
+    "O": "0",
+    "I": "1",
+    "l": "1",
+}
+
+
+def normalize_digits(text: str) -> str:
+    for k, v in OCR_FIX.items():
+        text = text.replace(k, v)
+    return text
+
+
+def extract(ocr_dir: Path) -> Optional[str]:
     for jf in sorted(ocr_dir.glob("*_ocr.json")):
         data = json.load(open(jf, encoding="utf-8"))
-        lines = data["lines"]
+        lines = data.get("lines", [])
 
-        for i in range(len(lines) - 2):
-            # Anchor: Lot Size :
-            if (
-                norm(lines[i]["text"]) == "lot" and
-                norm(lines[i+1]["text"]) == "size" and
-                norm(lines[i+2]["text"]) == ":"
-            ):
-                digits = []
+        for i, line in enumerate(lines):
+            text = line.get("text", "")
+            if ANCHOR_PATTERN.search(norm(text)):
+                full = normalize_digits(text)
+                match = re.search(r"(\d{3,6})\s*kg", full, re.I)
+                if match:
+                    return f"{match.group(1)} Kg"
 
-                for j in range(i+3, min(i+3+WINDOW, len(lines))):
-                    txt = lines[j]["text"].strip()
+                # fallback next line
+                if i + 1 < len(lines):
+                    nxt = normalize_digits(lines[i + 1].get("text", ""))
+                    match = re.search(r"(\d{3,6})\s*kg", nxt, re.I)
+                    if match:
+                        return f"{match.group(1)} Kg"
 
-                    # لو وصلنا للوحدة Kg → نقف
-                    if txt.lower() == "kg":
-                        if digits:
-                            return f"{''.join(digits)} Kg"
-                        break
-
-                    # لو token رقم → خزنه
-                    if txt.isdigit():
-                        digits.append(txt)
-                        continue
-
-                    # تجاهل كلمات زي Total
-                    if txt.lower() in ("total", "weight"):
-                        continue
-
-                    # أي حاجة تانية تكسر التسلسل
-                    if digits:
-                        break
-
-    return ""
+    return None
